@@ -1,15 +1,14 @@
 package base
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
 func (s *Server) Routes() {
-	data, _ := s.LoadDataFromFile("data.txt")
-	fmt.Println("Data loaded:", data)
+
+	s.SeedItemHelper()
 
 	r := mux.NewRouter()
 

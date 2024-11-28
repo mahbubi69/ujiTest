@@ -3,7 +3,9 @@ package base
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"ujiTest/models"
 	"ujiTest/res"
@@ -17,6 +19,7 @@ var modelReferences = []string{"car", "humanoid", "transformation"}
 var techReferences = []string{"AI", "car", "robot", "cyborg", "cybord"}
 
 func (s *Server) GetItems(w http.ResponseWriter, r *http.Request) {
+
 	switch r.Method {
 	case "GET":
 		modelFilter := r.URL.Query().Get("model")
@@ -69,173 +72,6 @@ func (s *Server) GetItems(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(newItem)
 	}
 }
-
-// func (s *Server) GetItems(w http.ResponseWriter, r *http.Request) {
-// 	filePath := "data.txt"
-// 	data := s.LoadDataFromFile(filePath)
-
-// 	switch r.Method {
-// 	case "GET":
-// 		// Ambil filter dari URL query
-// 		modelFilter := r.URL.Query().Get("model")
-// 		techFilters := r.URL.Query()["tech"]
-
-// 		var filteredItems []models.Item
-// 		for _, item := range data {
-// 			// Filter berdasarkan model jika diberikan
-// 			if modelFilter != "" && item.Model != modelFilter {
-// 				continue
-// 			}
-// 			// Filter berdasarkan teknologi jika ada
-// 			if len(techFilters) > 0 {
-// 				matches := true
-// 				for _, tech := range techFilters {
-// 					if !s.Contains(item.Tech, tech) {
-// 						matches = false
-// 						break
-// 					}
-// 				}
-// 				if !matches {
-// 					continue
-// 				}
-// 			}
-// 			filteredItems = append(filteredItems, item)
-// 		}
-
-// 		// Siapkan response
-// 		response := res.GetResponse{
-// 			Status:     http.StatusOK,
-// 			Count:      len(filteredItems),
-// 			TotalCount: len(data),
-// 			Data:       filteredItems,
-// 		}
-
-// 		// Kirimkan response
-// 		w.Header().Set("Content-Type", "application/json")
-// 		w.WriteHeader(http.StatusOK)
-// 		json.NewEncoder(w).Encode(response)
-
-// 	case "POST":
-// 		// Tambahkan item baru
-// 		var newItem models.Item
-// 		err := json.NewDecoder(r.Body).Decode(&newItem)
-// 		if err != nil {
-// 			http.Error(w, err.Error(), http.StatusBadRequest)
-// 			return
-// 		}
-
-// 		// Tambahkan ke data (untuk sementara tidak disimpan ke file)
-// 		data = append(data, newItem)
-
-// 		// Kirimkan response
-// 		w.Header().Set("Content-Type", "application/json")
-// 		w.WriteHeader(http.StatusCreated)
-// 		json.NewEncoder(w).Encode(newItem)
-// 	default:
-// 		// Tangani metode yang tidak didukung
-// 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-// 	}
-// }
-
-// func (s *Server) GetItems(w http.ResponseWriter, r *http.Request) {
-// 	filePath := "data.txt"
-
-// 	// Gunakan channel untuk sinkronisasi data dari goroutine
-// 	dataChan := make(chan []models.Item)
-// 	errChan := make(chan error)
-
-// 	// Jalankan `LoadDataFromFile` dalam goroutine
-// 	go func() {
-// 		data, err := s.LoadDataFromFile(filePath)
-// 		if err != nil {
-// 			errChan <- err
-// 			return
-// 		}
-// 		dataChan <- data
-// 	}()
-
-// 	var data []models.Item
-// 	select {
-// 	case data = <-dataChan: // Berhasil memuat data
-// 	case err := <-errChan: // Terjadi error
-// 		http.Error(w, err.Error(), http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	switch r.Method {
-// 	case "GET":
-// 		// Ambil filter dari URL query
-// 		modelFilter := r.URL.Query().Get("model")
-// 		techFilters := r.URL.Query()["tech"]
-
-// 		filteredChan := make(chan []models.Item)
-
-// 		// Jalankan proses filter dalam goroutine
-// 		go func() {
-// 			var filteredItems []models.Item
-// 			for _, item := range data {
-// 				// Filter berdasarkan model jika diberikan
-// 				if modelFilter != "" && item.Model != modelFilter {
-// 					continue
-// 				}
-// 				// Filter berdasarkan teknologi jika ada
-// 				if len(techFilters) > 0 {
-// 					matches := true
-// 					for _, tech := range techFilters {
-// 						if !s.Contains(item.Tech, tech) {
-// 							matches = false
-// 							break
-// 						}
-// 					}
-// 					if !matches {
-// 						continue
-// 					}
-// 				}
-// 				filteredItems = append(filteredItems, item)
-// 			}
-// 			filteredChan <- filteredItems
-// 		}()
-
-// 		// Tunggu hasil filter
-// 		filteredItems := <-filteredChan
-
-// 		// Siapkan response
-// 		response := res.GetResponse{
-// 			Status:     http.StatusOK,
-// 			Count:      len(filteredItems),
-// 			TotalCount: len(data),
-// 			Data:       filteredItems,
-// 		}
-
-// 		// Kirimkan response
-// 		w.Header().Set("Content-Type", "application/json")
-// 		w.WriteHeader(http.StatusOK)
-// 		json.NewEncoder(w).Encode(response)
-
-// 	case "POST":
-// 		// Tambahkan item baru
-// 		var newItem models.Item
-// 		err := json.NewDecoder(r.Body).Decode(&newItem)
-// 		if err != nil {
-// 			http.Error(w, err.Error(), http.StatusBadRequest)
-// 			return
-// 		}
-
-// 		// Tambahkan ke data (untuk sementara tidak disimpan ke file)
-// 		go func() {
-// 			data = append(data, newItem) // Tambahkan dalam goroutine
-// 		}()
-
-// 		// Kirimkan response
-// 		w.Header().Set("Content-Type", "application/json")
-// 		w.WriteHeader(http.StatusCreated)
-// 		json.NewEncoder(w).Encode(newItem)
-
-// 	default:
-// 		// Tangani metode yang tidak didukung
-// 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-// 	}
-// }
 
 func (s *Server) GetItemByCode(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -334,4 +170,37 @@ func (s *Server) Contains(slice []string, value string) bool {
 		}
 	}
 	return false
+}
+
+// helper send to memory data json
+func (s *Server) SeedItemHelper() {
+	var items []models.Item
+
+	// open files json
+	jsonFile, err := os.Open("data.json")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("Successfully opened data.json")
+	defer jsonFile.Close()
+
+	// read files json dari file JSON
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+
+	// Unmarshal JSON to struct Item
+	err = json.Unmarshal(byteValue, &items)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// Proses save data global
+	for _, item := range items {
+		data = append(data, item)
+		fmt.Printf("Item saved: %v\n", item.Name)
+	}
+
+	// result
+	fmt.Println("All items saved in memory")
 }

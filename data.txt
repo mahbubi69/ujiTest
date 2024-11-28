@@ -1,5 +1,0 @@
-rv1,Rover #1,car,AI|car,progress
-tfx,Transformer X,transformation,car|robot,active
-px1,Pacifista 1,humanoid,AI|robot,active
-ax8,Android #8,humanoid,cyborg,active
-ax7,Android #7,humanoid,cybord,inactive
