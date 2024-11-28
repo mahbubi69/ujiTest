@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"strings"
 	"ujiTest/models"
 	"ujiTest/res"
 
@@ -15,13 +14,11 @@ import (
 
 var data []models.Item
 
-var modelReferences = []string{"car", "humanoid", "transformation"}
-var techReferences = []string{"AI", "car", "robot", "cyborg", "cybord"}
-
 func (s *Server) GetItems(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
+		// get query parameter URL
 		modelFilter := r.URL.Query().Get("model")
 		techFilters := r.URL.Query()["tech"]
 
@@ -51,7 +48,7 @@ func (s *Server) GetItems(w http.ResponseWriter, r *http.Request) {
 			Data:       filteredItems,
 		}
 
-		// Mengirimkan response
+		// send response
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(response)
@@ -77,7 +74,7 @@ func (s *Server) GetItemByCode(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	code := vars["code"]
 
-	// Cari item berdasarkan code
+	//  search by code
 	for _, item := range data {
 		if item.Code == code {
 			w.Header().Set("Content-Type", "application/json")
@@ -126,7 +123,7 @@ func (s *Server) DeleteItem(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	code := vars["code"]
 
-	// Debug log untuk melihat nilai code
+	// Debug log
 	fmt.Println("Received code:", code)
 
 	if code == "" {
@@ -146,22 +143,22 @@ func (s *Server) DeleteItem(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Item not found", http.StatusNotFound)
 }
 
-func (s *Server) GetReferences(w http.ResponseWriter, r *http.Request) {
-	refType := strings.TrimPrefix(r.URL.Path, "/references/")
+// func (s *Server) GetReferences(w http.ResponseWriter, r *http.Request) {
+// 	refType := strings.TrimPrefix(r.URL.Path, "/references/")
 
-	var references []string
-	if refType == "model" {
-		references = modelReferences
-	} else if refType == "tech" {
-		references = techReferences
-	} else {
-		http.Error(w, "Invalid reference type", http.StatusBadRequest)
-		return
-	}
+// 	var references []string
+// 	if refType == "model" {
+// 		references = modelReferences
+// 	} else if refType == "tech" {
+// 		references = techReferences
+// 	} else {
+// 		http.Error(w, "Invalid reference type", http.StatusBadRequest)
+// 		return
+// 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(references)
-}
+// 	w.Header().Set("Content-Type", "application/json")
+// 	json.NewEncoder(w).Encode(references)
+// }
 
 func (s *Server) Contains(slice []string, value string) bool {
 	for _, v := range slice {

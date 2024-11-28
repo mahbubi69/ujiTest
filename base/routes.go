@@ -17,7 +17,7 @@ func (s *Server) Routes() {
 	r.HandleFunc("/items/{code}", s.GetItemByCode).Methods("GET")       // GET by code
 	r.HandleFunc("/updateItems/{code}", s.UpdateItem).Methods("PUT")    //PUT by code
 	r.HandleFunc("/deleteItems/{code}", s.DeleteItem).Methods("DELETE") // DELETE by code
-	r.HandleFunc("/references/", s.GetReferences).Methods("GET")
+	// r.HandleFunc("/references/", s.GetReferences).Methods("GET")
 
 	// Menjalankan HTTP server
 	http.Handle("/", r)
