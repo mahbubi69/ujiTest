@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"regexp"
+	"ujiTest/helper"
 	"ujiTest/models"
 	"ujiTest/res"
 
@@ -13,6 +15,9 @@ import (
 )
 
 var data []models.Item
+
+var modelReferences = []string{"car", "humanoid", "transformation"}
+var techReferences = []string{"AI", "car", "robot", "cyborg", "cybord"}
 
 func (s *Server) GetItems(w http.ResponseWriter, r *http.Request) {
 
@@ -41,6 +46,11 @@ func (s *Server) GetItems(w http.ResponseWriter, r *http.Request) {
 			}
 			filteredItems = append(filteredItems, item)
 		}
+
+		// if filteredItems == nil {
+		// 	filteredItems = []models.Item{}
+		// }
+
 		response := res.GetResponse{
 			Status:     http.StatusOK,
 			Count:      len(filteredItems),
@@ -58,6 +68,29 @@ func (s *Server) GetItems(w http.ResponseWriter, r *http.Request) {
 		err := json.NewDecoder(r.Body).Decode(&newItem)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if len(newItem.Code) < 10 {
+			json.NewEncoder(w).Encode(res.Status{Status: 400, Message: "Maaf input data anda kurang dari 10 "})
+			return
+		}
+
+		if len(newItem.Code) > 15 {
+			json.NewEncoder(w).Encode(res.Status{Status: 400, Message: "Maaf input data tidak boleh lebih dari 15"})
+			return
+		}
+
+		validate, _ := regexp.MatchString(`^[a-zA]+$`, newItem.Code)
+		if !validate {
+			json.NewEncoder(w).Encode(res.Status{Status: 400, Message: "Maaf input data hanya berisi angka dan huruf"})
+			return
+		}
+
+		uniq := helper.UniqueNonEmptyElementsOf(modelReferences)
+
+		if uniq != nil {
+			json.NewEncoder(w).Encode(res.Status{Status: 400, Message: "data anda sudah ada"})
 			return
 		}
 
@@ -179,6 +212,7 @@ func (s *Server) SeedItemHelper() {
 		fmt.Println(err)
 		return
 	}
+
 	fmt.Println("Successfully opened data.json")
 	defer jsonFile.Close()
 

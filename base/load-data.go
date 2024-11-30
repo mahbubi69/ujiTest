@@ -13,6 +13,7 @@ func (s *Server) LoadDataFromFile(filePath string) ([]models.Item, error) {
 	if err != nil {
 		panic(err)
 	}
+
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
