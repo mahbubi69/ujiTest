@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
-	"ujiTest/helper"
+	"strings"
 	"ujiTest/models"
 	"ujiTest/res"
 
@@ -16,8 +16,8 @@ import (
 
 var data []models.Item
 
-var modelReferences = []string{"car", "humanoid", "transformation"}
-var techReferences = []string{"AI", "car", "robot", "cyborg", "cybord"}
+// var modelReferences = []string{"car", "humanoid", "transformation"}
+// var techReferences = []string{"AI", "car", "robot", "cyborg", "cybord"}
 
 func (s *Server) GetItems(w http.ResponseWriter, r *http.Request) {
 
@@ -25,13 +25,19 @@ func (s *Server) GetItems(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		// get query parameter URL
 		modelFilter := r.URL.Query().Get("model")
-		techFilters := r.URL.Query()["tech"]
+		techFilterQuery := r.URL.Query().Get("tech")
+
+		var techFilters []string
+		if techFilterQuery != "" {
+			techFilters = strings.Split(techFilterQuery, ",")
+		}
 
 		var filteredItems []models.Item
 		for _, item := range data {
 			if modelFilter != "" && item.Model != modelFilter {
 				continue
 			}
+
 			if len(techFilters) > 0 {
 				matches := true
 				for _, tech := range techFilters {
@@ -47,9 +53,9 @@ func (s *Server) GetItems(w http.ResponseWriter, r *http.Request) {
 			filteredItems = append(filteredItems, item)
 		}
 
-		// if filteredItems == nil {
-		// 	filteredItems = []models.Item{}
-		// }
+		if filteredItems == nil {
+			filteredItems = []models.Item{}
+		}
 
 		response := res.GetResponse{
 			Status:     http.StatusOK,
@@ -87,14 +93,17 @@ func (s *Server) GetItems(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		uniq := helper.UniqueNonEmptyElementsOf(modelReferences)
-
-		if uniq != nil {
-			json.NewEncoder(w).Encode(res.Status{Status: 400, Message: "data anda sudah ada"})
-			return
+		for _, item := range data {
+			if item.Code == newItem.Code {
+				json.NewEncoder(w).Encode(res.Status{Status: 400, Message: "Data dengan code sudah ada"})
+				return
+			}
+			if item.Model == newItem.Model {
+				json.NewEncoder(w).Encode(res.Status{Status: 400, Message: "Data dengan model sudah ada"})
+				return
+			}
 		}
 
-		// Add new item to data
 		data = append(data, newItem)
 
 		w.Header().Set("Content-Type", "application/json")
